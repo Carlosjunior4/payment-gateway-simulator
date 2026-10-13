@@ -1,0 +1,77 @@
+# Deny everything by default; allow only explicit source, config, and documentation.
+*
+!*/
+
+# Project metadata and documentation
+!.gitignore
+!.gitattributes
+!.editorconfig
+!README.md
+
+# Maven and application source/configuration
+!.dockerignore
+!pom.xml
+!mvnw
+!mvnw.cmd
+!.mvn/
+!.mvn/wrapper/
+!.mvn/wrapper/maven-wrapper.properties
+!src/
+!src/**/
+!src/**/*.java
+!src/**/*.sql
+!src/**/*.yml
+!src/**/*.yaml
+!src/**/*.properties
+!src/**/*.xml
+!src/**/*.html
+
+# Standard container and CI configuration
+!.github/
+!.github/workflows/
+!.github/workflows/*.yml
+!.github/workflows/*.yaml
+!Dockerfile
+!docker-compose.yml
+!compose.yml
+!docker/
+!docker/**/*.sql
+!docker/**/*.yml
+!docker/**/*.yaml
+
+# Chat-generated conversations/scripts and sensitive credentials
+/conversas/
+/roteiros/
+/prompts/
+**/*chat*
+**/*conversa*
+**/*roteiro*
+.env
+.env.*
+!.env.example
+**/*.pem
+**/*.key
+**/*secret*
+**/*credential*
+
+# Local dependencies, generated artifacts, and binaries
+**/target/
+**/build/
+**/out/
+**/.gradle/
+**/*.class
+**/*.jar
+**/*.war
+**/*.ear
+**/*.zip
+**/*.log
+
+# IDE and operating-system files
+**/.idea/
+**/.vscode/
+**/*.iml
+**/.project
+**/.classpath
+**/.settings/
+**/Thumbs.db
+**/.DS_Store

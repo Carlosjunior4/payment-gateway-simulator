@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: payment-gateway
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/payment_gateway}
+    username: ${DATABASE_USERNAME:gateway}
+    password: ${DATABASE_PASSWORD:}
+  flyway:
+    enabled: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+server:
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+bank:
+  webhook:
+    url: ${BANK_WEBHOOK_URL:http://localhost:8080/api/v1/webhooks/fake-bank}
+    secret: ${BANK_WEBHOOK_SECRET:local-only-change-me}
+  simulator:
+    fail-requests: ${BANK_SIMULATOR_FAIL_REQUESTS:false}
+
+payment-processing:
+  poll-interval: ${PAYMENT_PROCESSING_POLL_INTERVAL:1s}
+
+webhook-processing:
+  poll-interval: ${WEBHOOK_PROCESSING_POLL_INTERVAL:1s}
+
+payment-rate-limit:
+  max-requests: ${PAYMENT_RATE_LIMIT_MAX_REQUESTS:60}
+  window: ${PAYMENT_RATE_LIMIT_WINDOW:60s}
