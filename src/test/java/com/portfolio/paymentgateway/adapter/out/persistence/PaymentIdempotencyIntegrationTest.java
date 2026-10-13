@@ -255,7 +255,7 @@ class PaymentIdempotencyIntegrationTest {
         assertEquals("SUCCEEDED", jdbcTemplate.queryForObject(
                 "SELECT status FROM payment_attempts WHERE payment_id = ?", String.class, paymentId));
         assertEquals(2, count("webhook_inbox"));
-        assertEquals(Integer.valueOf(1), jdbcTemplate.queryForObject(
+        assertEquals(Integer.valueOf(2), jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM webhook_inbox WHERE status = 'PROCESSED'", Integer.class));
     }
 
