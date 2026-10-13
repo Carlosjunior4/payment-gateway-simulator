@@ -56,8 +56,8 @@
 
 # Local dependencies, generated artifacts, and binaries
 **/target/
-**/build/
-**/out/
+/build/
+/out/
 **/.gradle/
 **/*.class
 **/*.jar
