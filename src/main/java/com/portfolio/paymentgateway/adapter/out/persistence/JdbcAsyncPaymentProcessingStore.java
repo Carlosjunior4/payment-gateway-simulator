@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
@@ -82,7 +84,7 @@ public class JdbcAsyncPaymentProcessingStore implements AsyncPaymentProcessingSt
                         charge.amountMinor(),
                         charge.currency()
                 )),
-                clock.instant()
+                toDatabaseTimestamp(clock.instant())
         );
     }
 
@@ -94,7 +96,7 @@ public class JdbcAsyncPaymentProcessingStore implements AsyncPaymentProcessingSt
                         SET status = 'SUCCEEDED', finished_at = ?
                         WHERE payment_id = ? AND attempt_number = ?
                         """,
-                clock.instant(),
+                toDatabaseTimestamp(clock.instant()),
                 charge.paymentId(),
                 charge.attempt()
         );
@@ -103,7 +105,7 @@ public class JdbcAsyncPaymentProcessingStore implements AsyncPaymentProcessingSt
                         SET status = 'PUBLISHED', published_at = ?, last_error = NULL, locked_until = NULL
                         WHERE id = ? AND status = 'PROCESSING'
                         """,
-                clock.instant(),
+                toDatabaseTimestamp(clock.instant()),
                 charge.outboxId()
         );
     }
@@ -121,7 +123,7 @@ public class JdbcAsyncPaymentProcessingStore implements AsyncPaymentProcessingSt
                         SET status = 'FAILED', finished_at = ?, response_metadata = ?::jsonb
                         WHERE payment_id = ? AND attempt_number = ?
                         """,
-                clock.instant(),
+                toDatabaseTimestamp(clock.instant()),
                 writeJson(new ErrorMessage(error)),
                 charge.paymentId(),
                 charge.attempt()
@@ -134,7 +136,7 @@ public class JdbcAsyncPaymentProcessingStore implements AsyncPaymentProcessingSt
                         """,
                 terminal ? "DEAD" : "FAILED",
                 error,
-                nextAttemptAt,
+                toDatabaseTimestamp(nextAttemptAt),
                 charge.outboxId()
         );
         if (terminal) {
@@ -143,7 +145,7 @@ public class JdbcAsyncPaymentProcessingStore implements AsyncPaymentProcessingSt
                             SET status = 'FAILED', failure_code = 'bank_unavailable', updated_at = ?
                             WHERE id = ? AND status = 'PENDING'
                             """,
-                    clock.instant(),
+                    toDatabaseTimestamp(clock.instant()),
                     charge.paymentId()
             );
         }
@@ -244,7 +246,7 @@ public class JdbcAsyncPaymentProcessingStore implements AsyncPaymentProcessingSt
                             WHERE id = ? AND status = 'PENDING'
                             """,
                     bankReference,
-                    clock.instant(),
+                    toDatabaseTimestamp(clock.instant()),
                     webhook.paymentId()
             );
         } else {
@@ -257,7 +259,7 @@ public class JdbcAsyncPaymentProcessingStore implements AsyncPaymentProcessingSt
                             WHERE id = ? AND status = 'PENDING'
                             """,
                     failureCode,
-                    clock.instant(),
+                    toDatabaseTimestamp(clock.instant()),
                     webhook.paymentId()
             );
         }
@@ -279,7 +281,7 @@ public class JdbcAsyncPaymentProcessingStore implements AsyncPaymentProcessingSt
                         """,
                 terminal ? "DEAD" : "FAILED",
                 error,
-                nextAttemptAt,
+                toDatabaseTimestamp(nextAttemptAt),
                 webhook.inboxId()
         );
     }
@@ -290,7 +292,7 @@ public class JdbcAsyncPaymentProcessingStore implements AsyncPaymentProcessingSt
                         SET status = 'PROCESSED', processed_at = ?, last_error = NULL, locked_until = NULL
                         WHERE id = ? AND status = 'PROCESSING'
                         """,
-                clock.instant(),
+                toDatabaseTimestamp(clock.instant()),
                 inboxId
         );
     }
@@ -317,6 +319,10 @@ public class JdbcAsyncPaymentProcessingStore implements AsyncPaymentProcessingSt
         } catch (JsonProcessingException exception) {
             throw new IllegalStateException("Message could not be serialized", exception);
         }
+    }
+
+    private OffsetDateTime toDatabaseTimestamp(Instant instant) {
+        return instant.atOffset(ZoneOffset.UTC);
     }
 
     private record BankChargeMessage(UUID paymentId, UUID merchantId, long amountMinor, String currency) {

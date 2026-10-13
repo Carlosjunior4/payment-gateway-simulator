@@ -16,6 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -77,8 +80,8 @@ public class JdbcPaymentStore implements IdempotentPaymentStore {
                 payment.amount().amountMinor(),
                 payment.amount().currency().getCurrencyCode(),
                 payment.status().name(),
-                payment.createdAt(),
-                payment.updatedAt()
+                toDatabaseTimestamp(payment.createdAt()),
+                toDatabaseTimestamp(payment.updatedAt())
         );
 
         String responseJson = serialize(initialResponse);
@@ -171,6 +174,10 @@ public class JdbcPaymentStore implements IdempotentPaymentStore {
         } catch (JsonProcessingException exception) {
             throw new IllegalStateException("Bank charge message could not be serialized", exception);
         }
+    }
+
+    private OffsetDateTime toDatabaseTimestamp(Instant instant) {
+        return instant.atOffset(ZoneOffset.UTC);
     }
 
     private PaymentResponse mapPayment(ResultSet resultSet) throws SQLException {
